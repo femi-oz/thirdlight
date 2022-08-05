@@ -1,0 +1,87 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "_artifactsLocation": {
+      "type": "string"
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring"
+    },
+    "costCenter": {
+      "type": "string",
+      "defaultValue": "701",
+      "metadata": {
+        "description": "The cost center the resource belongs to."
+      }
+    },
+    "createdBy": {
+      "type": "string",
+      "defaultValue": "Azure DevOps",
+      "metadata": {
+        "description": "The creator of the resource."
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of environment to which deployment is currently in progress"
+      }
+    },
+    "ownerName": {
+      "type": "string",
+      "defaultValue": "Software Engineering",
+      "metadata": {
+        "description": "The name of the owner the resource belongs to."
+      }
+    },
+    "projectName": {
+      "type": "string",
+      "defaultValue": "b2b-services",
+      "metadata": {
+        "description": "The name of project to which the resources belong"
+      }
+    }
+  },
+  "variables": {
+    "resourceTags": {
+      "CostCenter": "[parameters('costCenter')]",
+      "CreatedBy": "[parameters('createdBy')]",
+      "Environment": "[parameters('environmentName')]",
+      "Layer": "master",
+      "Owner": "[parameters('ownerName')]",
+      "ProjectName": "[parameters('projectName')]"
+    },
+  
+    "storage-template-filename": "storageAccount.json",
+    "storage-template-uri": "[concat(parameters('_artifactsLocation'), '/', variables('template-folder'), '/', variables('storage-template-filename'), parameters('_artifactsLocationSasToken'))]",
+    "storageName": "[replace(toLower(concat(parameters('environmentName'), parameters('projectName'), 'storage')),'-','')]",
+    "storageType": "Standard_RAGRS",
+    "template-folder": "nestedtemplates"
+  },
+  "resources": [
+
+    {
+      "name": "deploy-Storage",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2016-02-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('storage-template-uri')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "blobEncryptionEnabled": { "value": true },
+          "fileEncryptionEnabled": { "value": true },
+          "storageAccountName": { "value": "[variables('storageName')]" },
+          "storageAccountType": { "value": "[variables('storageType')]" },
+          "resourceTags": { "value": "[variables('resourceTags')]" }
+        }
+      }
+    }
+  ],
+  "outputs": {
+
+  }
+}
